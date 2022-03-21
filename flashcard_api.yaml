@@ -1,0 +1,76 @@
+openapi: '3.0.2'
+info:
+  title: Flashcard API
+  description: API Docs for flashcard API.
+  version: '1.0'
+  contact:
+    email: harshitk31dec@gmail.com
+servers:
+  - url: http://127.0.0.1:5000
+    description: Local Dev Server
+paths:
+  /api/login:
+    post:
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              type: object
+              properties:
+                username:
+                  description: "Username"
+                  type: string
+                pswd:
+                  description: "Password"
+                  type: string
+              required:
+                - "username"
+                - "pswd"
+      responses:
+        "200":
+          description: OK
+          content:
+            'application/json': {}
+        "400":
+          description: Incorrect Credentials
+          content:
+            'application/json': {}
+  /api/signup:
+    post:
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              type: object
+              properties:
+                username:
+                  description: "Username"
+                  type: string
+                pswd:
+                  description: "Password"
+                  type: string
+                name:
+                  description: "Name"
+                  type: string
+                email:
+                  description: "Email"
+                  type: string
+              required:
+                - "username"
+                - "pswd"
+      responses:
+        "200":
+          description: OK
+          content:
+            'application/json': {}
+        "400":
+          description: Incorrect Credentials
+          content:
+            'application/json': {}
+        "409":
+          description: Username Exists
+          content:
+            'application/json': {}
+                  
+                    
+        

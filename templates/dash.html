@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <script src="https://unpkg.com/vue-router@3"></script>
+    <link rel="stylesheet" href="../static/css/login.css">
+    <link rel="icon" type="image/x-icon" href="../static/img/logo_bg.png">
+    <title>FlashCard :: Login</title>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                <div class="container-fluid mynav">
+                    <a class="navbar-brand" href="/"><img id="brand-img" src="../static/img/logo.png"><span class="brand-name">FlashCard</span></a>
+                    <div>
+                        <span v-if="logged_in" id="name-of-user"> Hello, {user_name}</span>
+                    </div>
+                </div>
+            </nav>
+            <div id="loading"></div>
+        </header>
+        <div id="main-content">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="display-5">Decks</div>
+                    <p>Your have following decks.</p>
+                </div>
+                <div class="row justify-content-center">
+                    <table class="table">
+                        <thead class="thead-dark">
+                            <th scope="col" style="width: 10%;">#</th>
+                            <th scope="col" style="width: 40%;">Deck Name</th>
+                            <th scope="col" style="width: 25%;">Last Seen</th>
+                            <th scope="col" style="width: 15%;">Score</th>
+                            <th scope="col" style="width: 10%;"></th>
+                        </thead>
+                        <p v-if="all_decks.length==0" style="text-align: center;">You have no decks currently. Create one from below.</p>
+                        <tbody v-else>
+                            <tr v-for="(deck,index) in all_decks">
+                                <td>{{ index+1 }}</td>
+                                <th scope="row">{{ deck.deck_name }}</th>
+                                <td>{{  deck.last_seen }}</td>
+                                <td>{{  deck.deck_score }}</td>
+                                <td>
+                                    <select autocomplete="off" class="select-action" name="deck_actions" id="deck_action">
+                                        <option value="" selected disabled hidden>Actions</option>
+                                        <option value="rename">Rename</option>
+                                        <option value="delete">Delete</option>
+                                        <option value="add-card">Add Card</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <th scope="row">Bengali</th>
+                                <td>10 hrs ago</td>
+                                <td>20</td>
+                                <td>
+                                    <select autocomplete="off" class="select-action" name="deck_actions" id="deck_action">
+                                        <option value="" selected disabled hidden>Actions</option>
+                                        <option value="rename">Rename</option>
+                                        <option value="delete">Delete</option>
+                                        <option value="add-card">Add Card</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="row justify-content-center">
+                    <button class="btn create-button" >Create Deck</button>
+                </div>
+            </div>
+        </div>
+        <footer id="footer">
+            <div class="container">
+                <div class="links">
+                    <a href="#">About</a>
+                    <a href="#">Donate</a>
+                    <a href="#">Privacy</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+    <!-- <script src="./static/script.js"></script> -->
+    <script>
+        function openForm(){
+
+        }
+        function closeForm(){
+
+        }
+    </script>
+</body>
+</html>
