@@ -1,9 +1,9 @@
-
 from secrets import token_hex
 import json
-import time
+import timeago
+from datetime import datetime as dt
 from flask_restful import Resource,Api,marshal_with,request
-from flask_security import auth_required
+# from flask_security import auth_required
 from flask import current_app as app
 from flask import render_template
 from application.fieldsandparser import *
@@ -14,7 +14,6 @@ from application.exceptions import NotFoundError, ValidationError, InternalError
 #####    PROGRESS    ######
 
 # * have to implement update requests only, rest is super cool.
-
 
 api=Api(app)
 baseURL="http://localhost:5000"
@@ -124,7 +123,7 @@ class Deck_details_with_username(Resource):
             args=request.form
         user_we_want=user_object_if_username_exists_else_err(username)
         try:
-            new_deck=decks(name=args["name"],last_seen=time.strftime("%I:%M:%S %p %d-%b-%Y"))
+            new_deck=decks(name=args["name"],last_seen=dt.now().strftime("%I:%M:%S %p %d-%b-%Y"))
             user_we_want.decks.append(new_deck)
             db.session.add(new_deck)
             db.session.commit()
@@ -137,7 +136,7 @@ class Deck_details_with_username(Resource):
                 "deck_id": new_deck.id,
                 "deck_name":new_deck.name,
                 "deck_score":0,
-                "last_seen":new_deck.last_seen
+                "last_seen_human":timeago.format(dt.strptime(new_deck.last_seen, '%I:%M:%S %p %d-%b-%Y') , dt.now())
                 }
         })
     
@@ -150,6 +149,14 @@ class Deck_details_with_username(Resource):
         user_we_want=user_object_if_username_exists_else_err(username)
         if user_we_want:
             for dk in user_we_want.decks:
+                t_score=0
+                for card in dk.cards:
+                    t_score+=card.score
+                try:
+                    dk.score="%.1f"%(t_score/len(dk.cards))
+                except:
+                    dk.score=0
+                dk.last_seen_human=timeago.format(dt.strptime(dk.last_seen, '%I:%M:%S %p %d-%b-%Y') , dt.now())
                 dk.query_url=f"{baseURL}/api/{username}/{dk.id}"
             return user_we_want
         else:
@@ -167,6 +174,8 @@ class card_details_with_deck(Resource):
 
         deck_we_want=deck_object_if_user_has_else_err(username,deck_id)
         try:
+            deck_we_want.last_seen=dt.now().strftime("%I:%M:%S %p %d-%b-%Y")
+            db.session.commit()
             t_score=0
             for cd in deck_we_want.cards:
                 t_score+=cd.score
@@ -240,7 +249,8 @@ class card_details_with_deck(Resource):
             raise InternalError()
         return ({
             "message": "Deleted deck",
-            "deck_name":deck_we_want.name
+            "deck_name":deck_we_want.name,
+            "deck_id":deck_we_want.id
         })
     
 #######################################################################################

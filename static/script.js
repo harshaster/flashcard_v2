@@ -3,11 +3,20 @@ var SIGNUP_END_POINT="http://localhost:5000/api/signup"
 var baseURL="http://localhost:5000"
 
 const login = Vue.component('login',{
+    data: function(){
+        return {
+            notGoodRes: false,
+            sWrong: false
+        }
+    },
     template: `
     <div id="main-content">
         <div class="container">
             <div class="row justify-content-center">
+                
                 <div id="login-form" class="col col-sm-7 border">
+                    <div class="alert alert-danger" v-if="notGoodRes" > Username or Password is incorrect </div>
+                    <div class="alert alert-danger" v-if="sWrong"> Something went wrong. Please try again later. </div>
                     <div class="h2" style="text-align: center;margin-bottom: 20px;">Login to your account</div>
                     <form id="login-form-main">
                         <div class="row" id="username">
@@ -19,7 +28,7 @@ const login = Vue.component('login',{
                         <div class="row" id="submit">
                             <input class="btn btn-dark" v-on:click="loginReq" type="button" value="Login">
                         </div>
-                        <div class="text-danger" id="somethingWrong" style="display:none;text-align:center"> Username or Password is incorrect </div>
+                        
                     </form>
                     <p style="text-align: center;">
                         Don't have an account ? <router-link to="/signup" onclick="changeTitle('Flashcard :: SignUp')"> Create New Account </router-link>
@@ -30,28 +39,29 @@ const login = Vue.component('login',{
     </div>`,
 
     methods: {
-        loginReq : function(){
+        loginReq : async function(){
+            this.notGoodRes=false;
+            this.sWrong=false;
             document.getElementById("loading").style.visibility="visible";
-            document.getElementById("somethingWrong").style.display="none";
-            fetch(LOGIN_END_POINT, {
+            let login_res = await fetch(LOGIN_END_POINT, {
                 method: 'POST',
                 body: new FormData(document.getElementById("login-form-main"))
             })
-            .then(res => {
-                if(res.ok){
-                    return res.json()
-                }
-            })
-            .then(
-                data => {
-                    if(data!="True"){
-                        document.getElementById("somethingWrong").style.display="block"}
-                    else{
-                        this.$emit("log-success");
-                    }
-                    document.getElementById("loading").style.visibility="hidden";
-                    console.log(data)}
-            )
+            if (login_res.ok){
+                login_data = await login_res.json()
+                localStorage.setItem('token',login_data.token)
+                document.getElementById("loading").style.visibility="hidden";
+                setTimeout(()=>{},2000)
+                this.$router.push(`/${login_data.username}`)
+            }
+            else if(login_res.status>=400 && login_res.status<500){
+                this.notGoodRes=true;
+                document.getElementById("loading").style.visibility="hidden";
+            }
+            else if(login_res.status>=500){
+                this.sWrong=true;
+                document.getElementById("loading").style.visibility="hidden";
+            }
         }
     }
 })
@@ -153,27 +163,22 @@ var router = new VueRouter({
         {
             path: '/:username',
             component: dashboard
+        },
+        {
+            path: '/:username/:deck_id',
+            component: card_view,
         }
     ]
 })
 
 const app = new Vue({
     el: "#app",
-    data: {
-        logged:false,
-        user_name:undefined
-    },
-    methods: {
-        logged_in: function(){
-            this.logged=true;
-            this.user_name="Harshit";
-        }
-    },
-    components: {
-        login,
-        signup,
-        deck_obj
-    },
+    data: function(){
+        return {
+        logged:true,
+        user_name:"Harshit",
+    }
+},
     router: router,
 })
 

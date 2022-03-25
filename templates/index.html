@@ -8,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
     <script src="https://unpkg.com/vue-router@3"></script>
+    <script src="https://use.fontawesome.com/bb43f006e0.js"></script>
     <link rel="stylesheet" href="../static/css/login.css">
     <link rel="icon" type="image/x-icon" href="../static/img/logo_bg.png">
     <title>FlashCard :: Login</title>
@@ -23,7 +24,8 @@
             </nav>
             <div id="loading"></div>
         </header>
-        <router-view v-on:log-success="logged_in"></router-view>
+        <p>{{ user_name }}</p>
+        <router-view></router-view>
         <footer id="footer">
             <div class="container">
                 <div class="links">
@@ -35,6 +37,7 @@
         </footer>
     </div>
     <script src="./static/dash.js"></script>
+    <script src="./static/card.js"></script>
     <script src="./static/script.js"></script>
 </body>
 </html>

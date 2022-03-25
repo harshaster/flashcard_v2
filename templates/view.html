@@ -30,23 +30,44 @@
             <div id="loading"></div>
         </header>
         <div id="main-content">
-            <div class="container">
+            <div class="container" v-if="current_card">
                 <div>
-                    <button class="btn btn-outline-secondary card-button">Edit</button>
-                    <button class="btn btn-outline-danger card-button">Delete</button>
-                    <button class="btn btn-outline-dark card-button">&plus;</button>
-                    <button class="btn btn-outline-dark card-button">&minus;</button>
+                    <button class="btn btn-outline-secondary card-button" data-toggle="modal" data-target="#update-card" @click="edit_card">Edit</button>
+                    <button class="btn btn-outline-danger card-button" @click="delete_card">Delete</button>
+                    <button class="btn btn-outline-dark card-button" @click="incFontsize">&plus;</button>
+                    <button class="btn btn-outline-dark card-button" @click="decFontsize">&minus;</button>
                 </div>
                 <div>
-                    <div class="card-front">This is card front.</div>
+                    <div id="card-front">
+                        <label for="question">Question: </label>
+                        <label for="answer">Answer :</label>
+                        <div style="overflow:auto;"><input type="text" style="background-color: #00000000;border: none;outline: none;" value="Card question"></div>
+                        <div v-if="!hidden">Card Answer</div>
+                    </div>
                 </div>
                 <div class="show-answer">
-                    <button class="btn btn-outline-dark card-button"><< Prev</button>
-                    <button class="btn btn-primary card-button">Show Answer</button>
-                    <button class="btn btn-outline-dark card-button">Next >></button>
+                    <button class="btn btn-outline-dark card-button" v-bind:disabled="this.prevnotAllowed" id="prevButton" v-on:click="current_card_index -= 1;hidden=true">&lt;&lt; Prev</button>
+                    <button class="btn btn-primary card-button" v-if="hidden" v-on:click="hidden=false">Show Answer</button>
+                    <div class="btn-group" role="group" v-if="!hidden">
+                        <input type="button" class="btn btn-success" value="Easy"  autocomplete="off">
+                        <input type="button" class="btn btn-warning" value="Medium" autocomplete="off">
+                        <input type="button" class="btn btn-danger" value="Hard" autocomplete="off">
+                    </div>
+                    <button class="btn btn-outline-dark card-button" v-bind:disabled="this.nextnotAllowed" id="nextButton" v-on:click="current_card_index += 1;hidden=true">Next &gt;&gt;</button>
+                </div>
+            </div> 
+            <div id="loading-page" v-else>
+                <div id="loading-page-inner">
+                    <div style="display: flex;justify-content: center;">
+                        <div id="circ1"></div>
+                        <div id="circ2"></div>
+                        <div id="circ3"></div>
+                    </div>
                 </div>
             </div>
-
+            <div id="popup">
+                div
+            </div>
         </div>
         <footer id="footer">
             <div class="container">

@@ -31,6 +31,7 @@ card_fields={
     "card_id": fields.Integer(attribute="id"),
     "card_question": fields.String(attribute="question"),
     "card_answer": fields.String(attribute="answer"),
+    "score": fields.Integer(attribute="score"),
     "query_url": fields.String(attribute="query_url")
 }
 
@@ -44,9 +45,9 @@ deck_cards_fields={
 deck_lite={
     "deck_id": fields.Integer(attribute="id"),
     "deck_name":fields.String(attribute="name"),
-    "deck_score":fields.Integer(attribute="score"),
+    "deck_score":fields.Float(attribute="score"),
     "query_url":fields.String(attribute="query_url"),
-    "last_seen":fields.String(attribute="last_seen")
+    "last_seen":fields.String(attribute="last_seen_human")
 }
 
 user_decks={

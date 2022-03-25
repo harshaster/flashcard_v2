@@ -30,7 +30,7 @@
 
 
 #login-form, #signup-form{
-    margin-top:8% ;
+    /* margin-top:8% ; */
     background-color: #e4e4e4;
     padding: 10px;
     box-shadow: 0 0 3px #dddfe2;
@@ -43,10 +43,57 @@ input{
     border: 1px solid #969696;
 }
 
+/* ===================== LOADING ANIMATION =============================== */
+
+#loading-page{
+    height: 80%;
+    width: 100%;
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#loading-page-inner{
+    height: auto;
+    width: fit-content;
+    padding: 20px;
+    background-color: white;
+}
+
+#circ1, #circ2, #circ3{
+    margin: 5px;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background-color: black;
+    box-shadow: 1px 1px 0 #565656;
+    animation-timing-function: linear;
+}
+
+@keyframes load1{
+    to{
+        opacity: 0%;
+    }
+}
+
+#circ1{
+    animation: 0.6s infinite alternate  load1;
+}
+#circ2{
+    animation: 0.6s infinite alternate  load1;
+    animation-delay: 0.25s;
+}
+#circ3{
+    animation: 0.6s infinite alternate  load1;
+    animation-delay: 0.5s;
+}
+
+/* ==================================================================== */
+
 #loading{
-        height: 5px;
+        height: 10px;
         width: 100%;
-      background: linear-gradient(124deg, #ff2400, #e81d1d, #e8b71d, #e3e81d, #1de840, #1ddde8, #2b1de8, #dd00f3, #dd00f3);
+      background: linear-gradient(124deg, #ff2400, #e8b71d, #1ddde8, #2b1de8, #dd00f3);
       background-size: 1000% 1000%;
       transition: 0.3s;
       visibility: hidden;
@@ -85,38 +132,19 @@ input{
 }
 
 .create-button{
-    border-color: #969696;
+    background-color: blue;
+    color: white;
     border-radius: 10px;
-    border-width: 3px;
     margin-left: 15px;
     /* width: 10rem; */
 }
 
-@media only screen and (max-width:576px){
-    .create-button{
-        width: 70%;
-    }
 
-    .brand-name{
-        display: none;
-    }
-
-    #brand-img{
-        width: auto;
-        height: 2rem;
-        margin: 0 10px 0 5px;
-    }
-    .mynav{
-        width: 90%;
-    }
-    .card-button{
-        font-size: 80%;
-    }
-}
 
 .create-button:hover{
-    background-color: #555555;
-    color: white;
+    background-color: white;
+    color: blue;
+    border-color:blue;
 }
 
 #top-bar{
@@ -136,6 +164,19 @@ input{
     font-size: 90%;
 }
 
+.deck-name{
+    padding: 5px;
+    box-sizing: content-box;
+    font-size: 105%;
+    cursor: pointer;
+    text-decoration: dashed;
+    color: black;
+}
+
+.deck-name:hover{
+    color: #2b1de8;
+}
+
 .rename{
     border: 1px solid blue;
     color: blue;
@@ -145,19 +186,19 @@ input{
     color: white;
 }
 .add-cards{
-    border: 1px solid red;
-    color: red;
-}
-.add-cards:hover{
-    background-color: red;
-    color: white;
-}
-.delete{
     border: 1px solid green;
     color: green;
 }
-.delete:hover{
+.add-cards:hover{
     background-color: green;
+    color: white;
+}
+.delete{
+    border: 1px solid red;
+    color: red;
+}
+.delete:hover{
+    background-color: red;
     color: white;
 }
 
@@ -189,20 +230,87 @@ input{
     border-radius: 0;
 }
 
-.card-front, .card-back{
+#card-view-wrapper{
     margin-top: 30px;
     width:100%;
     text-align: center;
+    display: flex;
+    justify-content: center;
+    /* align-items:center; */
     padding: 10px;
     height: 50vh;
     background-color: yellow;
-    font-size: 50px;
     overflow: auto;
     box-shadow: 10px 10px 2px #dedede;
 }
+
+#card-front{
+    font-size: 30px;
+    overflow: auto;
+}
+
+#card-update input, #card-update button{
+    margin: 10px;
+}
+
+.small-navig-wrapper{
+    align-items: center;
+    display: none;
+    /* height: 100%; */
+}
+
+.small-navig{
+    height: fit-content;
+    width: fit-content;
+    border: none;
+    color: black;
+    background: none;
+    border: 1px solid black;
+    box-shadow: 0px 0px 1px grey;
+    padding: 0 5px 0 5px;
+    border-radius: 20px 20px 20px 20px;
+    font-size: 20px;
+}
+
+.small-navig:hover{
+    background-color: black;
+    color: white;
+}
+
 
 .show-answer{
     display: flex;
     justify-content: space-evenly;
     margin-top: 50px;
+}
+
+@media only screen and (max-width:576px){
+    .create-button{
+        width: fit-content;
+    }
+
+    .brand-name{
+        display: none;
+    }
+
+    #brand-img{
+        width: auto;
+        height: 2rem;
+        margin: 0 10px 0 5px;
+    }
+    .mynav{
+        width: 90%;
+    }
+    .card-button{
+        font-size: 80%;
+    }
+    .small-navig-wrapper{
+        display: flex;
+    }
+    #prevButton, #nextButton{
+        display: none;
+    }
+    #card-view-wrapper{
+        justify-content: space-between;
+    }
 }
