@@ -1,14 +1,17 @@
 from secrets import token_hex
+import re
 import json
+import time
 import timeago
 from datetime import datetime as dt
 from flask_restful import Resource,Api,marshal_with,request
-# from flask_security import auth_required
+import jwt
 from flask import current_app as app
 from flask import render_template
 from application.fieldsandparser import *
 from application.models import *
-from application.exceptions import NotFoundError, ValidationError, InternalError
+from application.exceptions import AuthError, NotFoundError, ValidationError, InternalError
+from application.jwt_setup import auth_required,get_username_with_token
 
 
 #####    PROGRESS    ######
@@ -24,11 +27,14 @@ def home():
 
 def user_object_if_username_exists_else_err(username):
     try:
-        user_we_want = User.query.filter(User.username==username).first()
-        if user_we_want:
-            return user_we_want
+        if username==get_username_with_token():
+            user_we_want = User.query.filter(User.username==username).first()
+            if user_we_want:
+                return user_we_want
+            else:
+                raise NotFoundError(404,"Username is incorrect or does not exist")
         else:
-            raise NotFoundError(404,"Username is incorrect or does not exist")
+            raise AuthError("Token is not valid for resource requeested", "UNAUTH")
     except:
         raise InternalError()
 
@@ -59,7 +65,6 @@ def card_object_if_deck_has_else_err(username,deck_id,card_id):
 # ###########################################################################
 
 class Login(Resource):
-    @marshal_with(login_signup_response)
     def post(self):
         try:
             if request.headers.get('Content-Type')=='application/json':
@@ -73,17 +78,17 @@ class Login(Resource):
         
         if uname is None or pswd is None:
             raise ValidationError(status_code= 400,error_message= "Username or password can't be empty", error_code="EMPFLD")
-        try:
-            user_we_want = User.query.filter(User.username==uname).first()
-        except:
-            raise InternalError()
-        if(user_we_want is not None):
-            if user_we_want.password==pswd:
-                return user_we_want
-            else:
-                raise ValidationError(status_code=400,error_message="Incorrect Password",error_code="INCPW")
+        user_we_want = User.query.filter(User.username==uname).first()
+        if user_we_want.password==pswd: #we can add some hasning things here later.
+            return {
+                "token": jwt.encode({"username" : user_we_want.username, "iat": time.time(),"exp":time.time()+1800},key=app.config["SECRET_KEY"]).decode('utf-8'),
+                "username": user_we_want.username,
+                "name": user_we_want.name,
+                "email": user_we_want.email
+            }
         else:
-            raise NotFoundError(status_code= 400,error_message= "Username not found")
+            raise ValidationError(status_code=400,error_message="Incorrect Password",error_code="INCPW")
+ 
     
 ##########################################################################
 
@@ -105,14 +110,16 @@ class Signup(Resource):
             new_user= User(username=args["username"], name=args["name"], password=args["pswd"], email=args["email"],fs_uniquifier=token_hex(32))
             db.session.add(new_user)
             db.session.commit()
-            return new_user
+            return json.dumps({
+                "token": jwt.encode({"username" : new_user.username, "iat": time.time(),"exp":time.time()+120},key=app.config["SECRET_KEY"])
+            })
         except:
             raise InternalError()
 
 ############################################################################## 
 
 class Deck_details_with_username(Resource):
-    # # @auth_required("token")
+    @auth_required
     def post(self,username):
 
         """ Create a new deck for the given username"""
@@ -140,7 +147,7 @@ class Deck_details_with_username(Resource):
                 }
         })
     
-    # # @auth_required("token")
+    @auth_required
     @marshal_with(user_fields) 
     def get(self,username):
 
@@ -166,8 +173,8 @@ class Deck_details_with_username(Resource):
 ###############################################################################################
 
 class card_details_with_deck(Resource):
+    @auth_required
     @marshal_with(deck_cards_fields)
-    # @auth_required("token")
     def get(self,username,deck_id):
 
         """ Returns all the cards of given deck id which must be associated with given information. If it is not linked, it throws an error."""
@@ -185,7 +192,7 @@ class card_details_with_deck(Resource):
         except:
             raise InternalError()
 
-    # @auth_required("token")
+    @auth_required
     def post(self,username,deck_id):
 
         """ Creates a new card in the deck with given deck_id. If the deck is not associated with the given username, it throws an error."""
@@ -213,7 +220,7 @@ class card_details_with_deck(Resource):
             "status": f"New card created in deck {deck_we_want.name}"
         })
     
-    # @auth_required("token")
+    @auth_required
     def patch(self,username,deck_id):
 
         """ Renames the deck with given deck_id which must be associated with given username, else error !!"""
@@ -236,7 +243,7 @@ class card_details_with_deck(Resource):
             }
         })
     
-    # @auth_required("token")
+    @auth_required
     def delete(self,username,deck_id):
 
         """Deletes the deck with given deck_id. If given deck is not associated with given username, it throws an error."""
@@ -256,7 +263,7 @@ class card_details_with_deck(Resource):
 #######################################################################################
 
 class individual_card(Resource):
-    # @auth_required("token")
+    @auth_required
     @marshal_with(card_fields)
     def get(self,username,deck_id,card_id):
 
@@ -271,7 +278,7 @@ class individual_card(Resource):
             raise InternalError
     
     #-------------------------------------------------------------------------
-    # @auth_required("token")
+    @auth_required
     def put(self,username,deck_id,card_id):
         if request.headers.get('Content-Type')=='application/json':
             args=json.loads(request.data)
@@ -294,7 +301,7 @@ class individual_card(Resource):
         })
 
     #-------------------------------------------------------
-    # @auth_required("token")
+    @auth_required
     def patch(self,username,deck_id,card_id):
         if request.headers.get('Content-Type')=='application/json':
             args=json.loads(request.data)
@@ -318,7 +325,7 @@ class individual_card(Resource):
 
     #-------------------------------------------------------------
 
-    # @auth_required("token")
+    @auth_required
     def delete(self,username,deck_id,card_id):
 
         """Deletes the card with given card_if if it is associated with the given deck_id which

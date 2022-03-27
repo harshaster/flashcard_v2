@@ -42,7 +42,7 @@ var dashboard = Vue.component('dashboard',{
             if (new_deck_name){
                 fetch(`${baseURL}/api/${this.username}`, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: {'Content-Type': 'application/json', 'Authorization': localStorage.getItem("token")},
                     body: JSON.stringify({
                         "name":new_deck_name
                     })
@@ -51,12 +51,28 @@ var dashboard = Vue.component('dashboard',{
                     if(res.ok){
                         return res.json()
                     }
+                    else if(res.status===401){
+                        return res.json()
+                    }
                     else{
                         throw new Error()
                     }
                 })
                 .then(data => {
-                    this.all_decks.push(data.new_deck);
+                    if (data["error_code"]){
+                        if(data["error_code"]=="SESEXP"){
+                            alert("Session expired! Please login again !");
+                            localStorage.setItem("token","")
+                            this.$router.push("/")
+                        }
+                        else{
+                            this.$router.push("/")
+                        }
+                    }
+                    else{
+                        let newly_deck=data.new_deck
+                        newly_deck.last_seen="just created"
+                        this.all_decks.push(data.new_deck);}
                 })
                 .catch(e => alert("Deck could not be created."));
             }
@@ -69,18 +85,35 @@ var dashboard = Vue.component('dashboard',{
     created: function(){
         this.loading=true;
         fetch(`${baseURL}/api/${this.username}`, {
-            method: "GET"
+            method: "GET",
+            headers: {'Authorization': localStorage.getItem("token")}
         })
         .then(res => {
             if (res.ok){
+                return res.json()
+            }
+            else if(res.status===401){
                 return res.json()
             }
             else{
                 throw new Error()
             }
         }).then(data => {
-            this.all_decks=data.decks;
-            this.all_decks.sort((a,b) => a.deck_score - b.deck_score)
+            if (data["error_code"]){
+                if(data["error_code"]=="SESEXP"){
+                    alert("Session expired! Please login again !");
+                    localStorage.setItem("token","")
+                    this.$router.push("/")
+                }
+                else{
+                    this.$router.push("/")
+                }
+            }
+            else{
+                this.all_decks=data.decks;
+                this.all_decks.sort((a,b) => a.deck_score - b.deck_score)
+            }
+            
         })
         .catch(e => this.all_decks=[]);
         document.title=`Dashboard :: ${this.username}`;
@@ -121,7 +154,7 @@ var deck_obj = Vue.component('deck-obj',{
             if(new_name){
                 fetch(`${baseURL}/api/${this.$parent.username}/${this.deck.deck_id}`,{
                     method: 'PATCH',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: {'Content-Type': 'application/json','Authorization': localStorage.getItem("token")},
                     body: JSON.stringify({
                         "new_name":new_name
                     })
@@ -130,22 +163,7 @@ var deck_obj = Vue.component('deck-obj',{
                     if(res.ok){
                         return res.json()
                     }
-                    else{
-                        throw new Error()
-                    }
-                })
-                .then(data => this.deck.deck_name=data.updated_deck.deck_name)
-                .catch(e => alert("Deck could not be renamed"))
-            }
-        },
-        delete_deck: function(){
-            let consent=confirm(`Are you sure to delete "${this.deck.deck_name}" deck? It will remove all its cards also !`)
-            if (consent){
-                fetch(`${baseURL}/api/${this.$parent.username}/${this.deck.deck_id}`,{
-                    method: 'DELETE'
-                })
-                .then(res=> {
-                    if(res.ok){
+                    else if(res.status===401){
                         return res.json()
                     }
                     else{
@@ -153,11 +171,58 @@ var deck_obj = Vue.component('deck-obj',{
                     }
                 })
                 .then(data => {
-                    for(ent in this.$parent.all_decks){
-                        if (this.$parent.all_decks[ent].deck_id==data.deck_id){
-                            this.$parent.all_decks.splice(ent,1)
+                    if (data["error_code"]){
+                        if(data["error_code"]=="SESEXP"){
+                            alert("Session expired! Please login again !");
+                            localStorage.setItem("token","")
+                            this.$router.push("/")
+                        }
+                        else{
+                            this.$router.push("/")
                         }
                     }
+                    else{this.deck.deck_name=data.updated_deck.deck_name}
+                })
+                .catch(e => alert("Deck could not be renamed"))
+            }
+        },
+        delete_deck: function(){
+            let consent=confirm(`Are you sure to delete "${this.deck.deck_name}" deck? It will remove all its cards also !`)
+            if (consent){
+                fetch(`${baseURL}/api/${this.$parent.username}/${this.deck.deck_id}`,{
+                    method: 'DELETE',
+                    headers: {'Authorization': localStorage.getItem("token")}
+                })
+                .then(res=> {
+                    if(res.ok){
+                        return res.json()
+                    }
+                    else if(res.status===401){
+                        return res.json()
+                    }
+                    else{
+                        throw new Error()
+                    }
+                })
+                .then(data => {
+                    if (data["error_code"]){
+                        if(data["error_code"]=="SESEXP"){
+                            alert("Session expired! Please login again !");
+                            localStorage.setItem("token","")
+                            this.$router.push("/")
+                        }
+                        else{
+                            this.$router.push("/")
+                        }
+                    }
+                    else{
+                        for(ent in this.$parent.all_decks){
+                            if (this.$parent.all_decks[ent].deck_id==data.deck_id){
+                                this.$parent.all_decks.splice(ent,1)
+                            }
+                        }
+                    }
+                    
                 })
                 .catch(e => alert("Deck could not be deleted"))
             }
@@ -169,15 +234,31 @@ var deck_obj = Vue.component('deck-obj',{
                 if (cardA){
                     fetch(`${baseURL}/api/${this.username}/${this.deck.deck_id}`, {
                         method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
+                        headers: {'Content-Type': 'application/json', 'Authorization': localStorage.getItem("token")},
                         body: JSON.stringify({
                             "question": cardQ,
                             "answer": cardA
                         })
                     })
                     .then(res => {
-                        if(!res.ok){throw new Error();}
-                        
+                        console.log(!res.ok)
+                        if(res.status===401){
+                            return res.json()
+                        }
+                        else if(!res.ok){
+                            throw new Error();}
+                    })
+                    .then(data => {
+                        if (data["error_code"]){
+                            if(data["error_code"]=="SESEXP"){
+                                alert("Session expired! Please login again !");
+                                localStorage.setItem("token","")
+                                this.$router.push("/")
+                            }
+                            else{
+                                this.$router.push("/")
+                            }
+                        }
                     })
                     .catch(e => alert("Card could not be created"))
                 }

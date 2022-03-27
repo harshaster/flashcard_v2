@@ -6,7 +6,7 @@ const login = Vue.component('login',{
     data: function(){
         return {
             notGoodRes: false,
-            sWrong: false
+            sWrong: false,
         }
     },
     template: `
@@ -71,6 +71,16 @@ const signup = Vue.component('signup',{
         return {
             status_text:"",
             status_class:"text-danger",
+            pass:"",
+            conf_pass:""
+        }
+    },
+    computed: {
+        matched: function(){
+            if(this.pass && this.conf_pass){
+                return (this.pass===this.conf_pass)
+            }
+            
         }
     },
     template: `
@@ -84,16 +94,22 @@ const signup = Vue.component('signup',{
                             <input type="text" name="name" required placeholder="Your name">
                         </div>
                         <div class="row" id="username">
-                            <input type="text" name="username" required placeholder="Create a username">
+                            <input type="text" name="username" autocomplete="off" required placeholder="Create a username">
                         </div>
                         <div class="row" id="email">
-                            <input type="email" name="email" required placeholder="Enter your email"">
+                            <input type="email" name="email" autocomplete="off" required placeholder="Enter your email" >
                         </div>
                         <div class="row pass">
-                            <input type="password" name="pswd" required placeholder="Enter new password">
+                            <input type="password" v-model="pass" name="pswd" autocomplete="off" required placeholder="Enter new password" >
                         </div>
                         <div class="row pass"  id="pass-confirm">
-                            <input type="password" name="conf-pswd" required placeholder="Confirm password">
+                            <input type="password" v-model="conf_pass" name="conf-pswd" autocomplete="off" required placeholder="Confirm password">
+                        </div>
+                        <div class="row">
+                            
+                            <svg v-if="matched" style="color:green" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">Password matched
+                            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                            </svg>
                         </div>
                         <div class="row" id="submit">
                             <input class="btn btn-dark" type="button" @click="signupReq" value="Create Account">
@@ -110,6 +126,10 @@ const signup = Vue.component('signup',{
     methods: {
         signupReq : function(){
             let status=document.getElementById("somethingWrong");
+            if(document.getElementsByName("pswd")[0].value.length<8){
+                alert("Password is too short");
+                return false;
+            }
             if(document.getElementsByName("pswd")[0].value!=document.getElementsByName("conf-pswd")[0].value){
                 alert("Password do not match ! Please try again")
                 return false

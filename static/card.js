@@ -8,7 +8,6 @@ const card_view = Vue.component('card-view', {
             deck_id:this.$route.params.deck_id,
             card_font_size:30,
             editing: false,
-            noCards:false
         }
     },
     computed:{
@@ -23,6 +22,9 @@ const card_view = Vue.component('card-view', {
         },
         nextnotAllowed: function(){
             return this.current_card_index==(this.cards_len-1)
+        },
+        noCards: function(){
+            return this.cards_len===0;
         }
     },
     template: `
@@ -77,22 +79,39 @@ const card_view = Vue.component('card-view', {
         </div>`,
     created: function(){
         fetch(`${baseURL}/api/${this.username}/${this.deck_id}`, {
-            method: 'GET'
+            method: 'GET',
+            headers: {'Authorization': localStorage.getItem("token")}
         })
         .then(res => {
             if(res.ok){
                 return res.json()
             }
+            else if(res.status===401){
+                return res.json()
+            }
             throw new Error();
         })
         .then(data => {
-            if(data.deck_cards.length===0){
-                this.noCards=true
+            if (data["error_code"]){
+                if(data["error_code"]=="SESEXP"){
+                    alert("Session expired! Please login again !");
+                    localStorage.setItem("token","")
+                    this.$router.push("/")
+                }
+                else{
+                    this.$router.push("/")
+                }
             }
             else{
-                this.all_cards=data.deck_cards;
-            this.all_cards.sort((x,y) => x.score - y.score)
-            }   
+                if(data.deck_cards.length===0){
+                    this.noCards=true
+                }
+                else{
+                    this.all_cards=data.deck_cards;
+                    this.all_cards.sort((x,y) => x.score - y.score)
+                }   
+            }
+            
         })
         .catch(e => {console.log(e);this.all_cards=[];alert("Something went wrong");this.$router.push(`/${this.username}`)});
     },
@@ -120,7 +139,8 @@ const card_view = Vue.component('card-view', {
             let consent = confirm("Do you really want to delete this card ? ")
             if(consent){
                 fetch(`${baseURL}/api/${this.username}/${this.deck_id}/${this.current_card.card_id}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: {'Authorization': localStorage.getItem("token")}
                 })
                 .then(res => {
                     if(res.ok){
@@ -133,7 +153,22 @@ const card_view = Vue.component('card-view', {
                         
                         return res.json();
                     }
+                    else if(res.status===401){
+                        return res.json()
+                    }
                     throw new Error()
+                })
+                .then(data => {
+                    if (data["error_code"]){
+                        if(data["error_code"]=="SESEXP"){
+                            alert("Session expired! Please login again !");
+                            localStorage.setItem("token","")
+                            this.$router.push("/")
+                        }
+                        else{
+                            this.$router.push("/")
+                        }
+                    }
                 })
                 .catch(e => console.log(e))
             }
@@ -144,17 +179,34 @@ const card_view = Vue.component('card-view', {
         submit_edit: function(){
             fetch(`${baseURL}/api/${this.username}/${this.deck_id}/${this.current_card.card_id}`, {
                 method: 'PUT',
+                headers: {'Authorization': localStorage.getItem("token")},
                 body: new FormData(document.getElementById("card-update"))
             })
             .then(res => {
                 if(res.ok){
                     return res.json()
                 }
+                else if(res.status===401){
+                    return res.json()
+                }
                 throw new Error()
             })
             .then(data => {
-                this.all_cards[this.current_card_index].card_question=data.updated_card.question;
-                this.all_cards[this.current_card_index].card_answer=data.updated_card.answer;
+                if (data["error_code"]){
+                    if(data["error_code"]=="SESEXP"){
+                        alert("Session expired! Please login again !");
+                        localStorage.setItem("token","")
+                        this.$router.push("/")
+                    }
+                    else{
+                        this.$router.push("/")
+                    }
+                }
+                else{
+                    this.all_cards[this.current_card_index].card_question=data.updated_card.question;
+                    this.all_cards[this.current_card_index].card_answer=data.updated_card.answer;
+                }
+                
             })
             .catch(e => prompt("Changes could not be saved !"));
             this.editing=false
@@ -165,7 +217,7 @@ const card_view = Vue.component('card-view', {
         send_score: function(score){
             fetch(this.current_card.query_url, {
                 method: 'PATCH',
-                headers: {'Content-Type': 'application/json'},
+                headers: {'Content-Type': 'application/json', 'Authorization': localStorage.getItem("token")},
                 body: JSON.stringify({
                     "score": score
                 })
@@ -174,18 +226,34 @@ const card_view = Vue.component('card-view', {
                 if(res.ok){
                     return res.json()
                 }
+                else if(res.status===401){
+                    return res.json()
+                }
                 throw new Error()
             })
             .then(data => {
-                this.current_card.score=data.updated_card.new_score_card;
-                this.hidden=true;
-                if(!this.nextnotAllowed){
-                    this.current_card_index += 1;
+                if (data["error_code"]){
+                    if(data["error_code"]=="SESEXP"){
+                        alert("Session expired! Please login again !");
+                        localStorage.setItem("token","")
+                        this.$router.push("/")
+                    }
+                    else{
+                        this.$router.push("/")
+                    }
                 }
                 else{
-                    alert("Congratulations !! You have finished this deck for now. Come back later.");
-                    this.$router.push(`/${this.username}`)
+                    this.current_card.score=data.updated_card.new_score_card;
+                    this.hidden=true;
+                    if(!this.nextnotAllowed){
+                        this.current_card_index += 1;
+                    }
+                    else{
+                        alert("Congratulations !! You have finished this deck for now. Come back later.");
+                        this.$router.push(`/${this.username}`)
+                    }
                 }
+                
             })
             .catch(e => alert("Score could not be updated !"))
             
