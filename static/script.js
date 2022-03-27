@@ -1,6 +1,6 @@
-var LOGIN_END_POINT="http://localhost:5000/api/login"
-var SIGNUP_END_POINT="http://localhost:5000/api/signup"
-var baseURL="http://localhost:5000"
+var LOGIN_END_POINT="http://thefp2.herokuapp.com/api/login"
+var SIGNUP_END_POINT="http://thefp2.herokuapp.com/api/signup"
+var baseURL="http://thefp2.herokuapp.com"
 
 const login = Vue.component('login',{
     data: function(){
