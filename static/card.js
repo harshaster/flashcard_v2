@@ -75,6 +75,7 @@ const card_view = Vue.component('card-view', {
             </div>
         </div>`,
     created: function(){
+        document.title="Deck"
         fetch(`${baseURL}/api/${this.username}/${this.deck_id}`, {
             method: 'GET',
             headers: {'Authorization': localStorage.getItem("token")}
@@ -112,6 +113,7 @@ const card_view = Vue.component('card-view', {
                     this.$parent.logged=true
                 }
                 this.loading=false
+                document.title=`${data.deck_name}`
             }
             
         })

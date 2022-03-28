@@ -1,6 +1,7 @@
-var LOGIN_END_POINT="http://localhost:5000/api/login"
-var SIGNUP_END_POINT="http://localhost:5000/api/signup"
 var baseURL="http://localhost:5000"
+var LOGIN_END_POINT=`${baseURL}/login`
+var SIGNUP_END_POINT=`${baseURL}/signup`
+
 
 const login = Vue.component('login',{
     data: function(){
@@ -31,7 +32,7 @@ const login = Vue.component('login',{
                         
                     </form>
                     <p style="text-align: center;">
-                        Don't have an account ? <router-link to="/signup" onclick="changeTitle('Flashcard :: SignUp')"> Create New Account </router-link>
+                        Don't have an account ? <router-link to="/signup"> Create New Account </router-link>
                     </p>
                 </div>
             </div>
@@ -54,6 +55,7 @@ const login = Vue.component('login',{
                 setTimeout(()=>{},2000)
                 this.$parent.logged=true, 
                 localStorage.setItem("current_user",login_data.name)
+                localStorage.setItem("token",login_data.token)
                 this.$router.push(`/${login_data.username}`)
             }
             else if(login_res.status>=400 && login_res.status<500){
@@ -67,6 +69,7 @@ const login = Vue.component('login',{
         }
     },
     created: function(){
+        document.title="Login";
         fetch(`${baseURL}/api/isAuth`, {
             method: 'GET',
             headers: {'Authorization': localStorage.getItem("token")},
@@ -140,7 +143,7 @@ const signup = Vue.component('signup',{
                         <div v-bind:class="status_class" id="somethingWrong" style="display:none;text-align:center">{{status_text}}</div>
                     </form>
                     <p style="text-align: center;margin-top:5px">
-                        Already have an account ? <router-link to="/" onclick="changeTitle('Flashcard :: Login')"> Login here </router-link>
+                        Already have an account ? <router-link to="/"> Login here </router-link>
                     </p>
                 </div>
             </div>
@@ -149,6 +152,7 @@ const signup = Vue.component('signup',{
     methods: {
         signupReq : function(){
             let status=document.getElementById("somethingWrong");
+            status.style.display="none";
             if(document.getElementsByName("pswd")[0].value.length<8){
                 alert("Password is too short");
                 return false;
@@ -164,32 +168,44 @@ const signup = Vue.component('signup',{
                 body: new FormData(document.getElementById("signup-form-main"))
             })
             .then(res => {
+                if(res.status===409){
+                    return res.json()
+                }
                 if(!res.ok){
                     throw new Error("something wrong from server")}
                 document.getElementById("loading").style.visibility="hidden";
                 return res.json()})
             .then( data => {
-                if (data!="True"){
-                    if(data === "Already Exists"){
+                if(data["error_code"]){
+                    if (data["error_code"]=="UNAEX"){
                         this.status_text="Username already exists."
                     }
                     else{
                         this.status_text="Something went wrong."
                     }
                 }
-                
                 else{
                     this.status_class="text-success";
-                    this.status_text="Account successfully created ! You can login now."
+                    this.status_text="Account successfully created ! Redirecting to dashboard ..."
+                    this.sleep(2000)
+                    localStorage.setItem("token",data.token)
+                    localStorage.setItem("current_user",data.name)
+                    this.$router.push(`/${data.username}`)
                 }
                 status.style.display="block";
-                console.log(data);
+                // console.log(data);
             })
             .catch(e => {
                 this.status_text="Something went wrong."
                 status.style.display="block";
                 console.log("Error occured : "+e)})
+        },
+        sleep: function (ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
         }
+    },
+    created: function(){
+        this.title="Sign Up"
     }
 })
 

@@ -4,17 +4,17 @@ var dashboard = Vue.component('dashboard',{
         <div class="container">
             <div class="row justify-content-center">
                 <div id="top-bar">
-                    <div class="display-5">Decks</div> 
+                    <div class="display-5">Welcome {{ name }}</div> 
                     <div>
                         <button class="btn create-button" v-on:click="create_new_deck">&plus; Add Deck</button>
                         <button class="btn btn-outline-dark" @click="export_all_decks">Export decks</button>
                     </div>
                 </div>
                 <hr v-if="all_decks.length==0">
-                <p v-if="all_decks.length!=0">Your have following decks.</p>
+                <p v-if="all_decks.length!=0">Here are your decks.</p>
             </div>
             <div class="row justify-content-center">
-                <p v-if="all_decks.length==0" style="text-align: center; width:90%;margin-top:10%px" class="alert alert-warning" role="alert">You have no decks currently. Create one from above.</p>
+                <p v-if="all_decks.length==0" style="text-align: center; width:90%;margin-top:10%px" class="alert alert-warning" role="alert"> Oops, you have no decks currently. Create one from above.</p>
                 <table v-else class="table">
                     <thead class="thead-dark">
                         <th scope="col" style="width: 10%;">#</th>
@@ -35,7 +35,8 @@ var dashboard = Vue.component('dashboard',{
         return {
             username: this.$route.params.username,
             all_decks:[],
-            loading:true
+            loading:true,
+            name: localStorage.getItem("current_user")
         }
     },
     methods:{
@@ -109,6 +110,7 @@ var dashboard = Vue.component('dashboard',{
         deck_obj
     },
     created: function(){
+        document.title="Dashboard"
         this.loading=true;
         fetch(`${baseURL}/api/${this.username}`, {
             method: "GET",
@@ -145,7 +147,7 @@ var dashboard = Vue.component('dashboard',{
             
         })
         .catch(e => this.all_decks=[]);
-        document.title=`Dashboard :: ${this.username}`;
+        document.title=`Dashboard-${this.username}`;
         this.loading=false
     },
 })

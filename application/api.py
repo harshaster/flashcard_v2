@@ -4,7 +4,6 @@ import re
 import json
 import requests
 import time
-from unittest import result
 import timeago
 from datetime import datetime as dt
 from flask_restful import Resource,Api,marshal_with,request
@@ -127,7 +126,6 @@ class Login(Resource):
 ##########################################################################
 
 class Signup(Resource):
-    @marshal_with(login_signup_response)
     def post(self):
         if request.headers.get('Content-Type')=='application/json':
             args=json.loads(request.data)
@@ -140,15 +138,18 @@ class Signup(Resource):
         if user_requested:
             #if user is found
             raise ValidationError(status_code= 409,error_message="Username exists",error_code="UNAEX")
-        try:
-            new_user= User(username=args["username"], name=args["name"], password=args["pswd"], email=args["email"],fs_uniquifier=token_hex(32))
-            db.session.add(new_user)
-            db.session.commit()
-            return json.dumps({
-                "token": jwt.encode({"username" : new_user.username, "iat": time.time(),"exp":time.time()+120},key=app.config["SECRET_KEY"])
-            })
-        except:
-            raise InternalError()
+        # try:
+        new_user= User(username=args["username"], name=args["name"], password=args["pswd"], email=args["email"],seen_today=True)
+        db.session.add(new_user)
+        db.session.commit()
+        return {
+            "token": jwt.encode({"username" : new_user.username, "iat": time.time(),"exp":time.time()+1800},key=app.config["SECRET_KEY"]).decode('utf-8'),
+            "username": new_user.username,
+            "name": new_user.name,
+            "email": new_user.email
+        }
+        # except:
+        #     raise InternalError()
 
 ############################################################################## 
 
@@ -189,6 +190,8 @@ class Deck_details_with_username(Resource):
 
         user_we_want=user_object_if_username_exists_else_err(username)
         if user_we_want:
+            user_we_want.seen_today=True
+            db.session.commit()
             for dk in user_we_want.decks:
                 t_score=0
                 for card in dk.cards:

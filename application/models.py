@@ -6,7 +6,7 @@ class User(db.Model):
     password=db.Column(db.String(20), nullable=False)
     name=db.Column(db.String,nullable=False)
     email=db.Column(db.String, nullable=False)
-    fs_uniquifier=db.Column(db.String, unique=True, nullable=False)
+    seen_today=db.Column(db.Boolean, default=True)
     decks=db.relationship('decks',secondary='userdeck', lazy=True, backref=db.backref('user',lazy=True))
     def __repr__(self):
         return f"<USER {self.username}>"
