@@ -35,7 +35,7 @@ def hello():
 @app.route("/api/<string:username>/<int:deck_id>/export", methods=["GET"])
 def export_deck_job(username,deck_id):
     token=get_token()
-    deck_data=requests.get(url=f"http://localhost:5000/api/{username}/{deck_id}",headers={'Authorization':token})
+    deck_data=requests.get(url=f"{app.config['BASE_URL']}/api/{username}/{deck_id}",headers={'Authorization':token})
     mydeck=deck_data.json()
     job=tasks.export_csv.delay(mydeck,username,deck_id)
     return send_from_directory("csvs",f"{username}_{deck_id}.csv")
