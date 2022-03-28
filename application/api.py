@@ -43,7 +43,7 @@ def export_deck_job(username,deck_id):
 @app.route("/api/<string:username>/export", methods=["GET"])
 def export_all_decks(username):
     token=get_token()
-    decks_data=requests.get(url=f"http://localhost:5000/api/{username}",headers={'Authorization':token})
+    decks_data=requests.get(url=f"{app.config['BASE_URL']}/api/{username}",headers={'Authorization':token})
     mydecks=decks_data.json()
     job=tasks.export_all_decks.delay(mydecks)
     result=job.wait()

@@ -15,6 +15,6 @@ class prod_conf:
     DEBUG= False
     SQLALCHEMY_TRACK_MODIFICATOINS=True
     SECRET_KEY=os.getenv("FLASK_SECRET_KEY")
-    BASE_URL="http://thefp2.herokuapp.com"
+    BASE_URL=os.getenv("BASE_URL")
     CELERY_BROKER_URL="redis://thefp2.herokuapp.com:6379/1"
     CELERY_RESULT_BACKEND="redis://thefp2.herokuapp.com:6379/2"
