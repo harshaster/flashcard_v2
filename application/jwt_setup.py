@@ -17,7 +17,7 @@
 
 # jwt = JWT(app,authenticate,identity)
 from functools import wraps
-from flask import redirect, request
+from flask import request
 import jwt
 from application.exceptions import AuthError
 from flask import current_app as app

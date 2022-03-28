@@ -1,6 +1,4 @@
 from datetime import datetime
-from secrets import token_hex
-import re
 import json
 import requests
 import time
@@ -8,7 +6,7 @@ import timeago
 from datetime import datetime as dt
 from flask_restful import Resource,Api,marshal_with,request
 import jwt
-from flask import current_app as app, send_file, send_from_directory
+from flask import current_app as app, send_from_directory
 from flask import render_template
 from application.fieldsandparser import *
 from application.models import *

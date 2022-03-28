@@ -1,6 +1,6 @@
 var baseURL="http://localhost:5000"
-var LOGIN_END_POINT=`${baseURL}/login`
-var SIGNUP_END_POINT=`${baseURL}/signup`
+var LOGIN_END_POINT=`${baseURL}/api/login`
+var SIGNUP_END_POINT=`${baseURL}/api/signup`
 
 
 const login = Vue.component('login',{
