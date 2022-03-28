@@ -1,4 +1,4 @@
-var baseURL="http://localhost:5000"
+var baseURL="http://thefp2.herokuapp.com"
 var LOGIN_END_POINT=`${baseURL}/api/login`
 var SIGNUP_END_POINT=`${baseURL}/api/signup`
 
@@ -173,7 +173,6 @@ const signup = Vue.component('signup',{
                 }
                 if(!res.ok){
                     throw new Error("something wrong from server")}
-                document.getElementById("loading").style.visibility="hidden";
                 return res.json()})
             .then( data => {
                 if(data["error_code"]){
@@ -193,11 +192,13 @@ const signup = Vue.component('signup',{
                     this.$router.push(`/${data.username}`)
                 }
                 status.style.display="block";
+                document.getElementById("loading").style.visibility="hidden";
                 // console.log(data);
             })
             .catch(e => {
                 this.status_text="Something went wrong."
                 status.style.display="block";
+                document.getElementById("loading").style.visibility="hidden";
                 console.log("Error occured : "+e)})
         },
         sleep: function (ms) {

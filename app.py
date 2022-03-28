@@ -1,13 +1,19 @@
-from application.config import conf
+from application.config import prod_conf,local_conf
 from flask import Flask
 from application.database import db
 from application.workers import celery,ContextTask
+import os
 # from flask_security import Security, SQLAlchemySessionUserDatastore, SQLAlchemyUserDatastore
 
 
 def create_app():
     app=Flask(__name__)
-    app.config.from_object(conf)
+    if os.getenv("ENV")=="prod":    
+        app.config.from_object(prod_conf)
+        print("ENVIRON set as PROD")
+    elif os.getenv("ENV")=="local":
+        app.config.from_object(local_conf)
+        print("ENVIRON set as LOCAL")
     db.init_app(app)
     app.app_context().push()
     # user_datastore=SQLAlchemySessionUserDatastore(db.session,)

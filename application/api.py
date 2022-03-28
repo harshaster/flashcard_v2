@@ -20,7 +20,7 @@ from application.jwt_setup import auth_required,get_username_with_token,get_toke
 # * have to implement update requests only, rest is super cool.
 
 api=Api(app)
-baseURL="http://localhost:5000"
+baseURL=app.config["BASE_URL"]
 
 @app.route("/hello", methods=["GET"])
 def hello():
