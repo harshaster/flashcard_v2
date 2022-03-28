@@ -5,7 +5,10 @@ var dashboard = Vue.component('dashboard',{
             <div class="row justify-content-center">
                 <div id="top-bar">
                     <div class="display-5">Decks</div> 
-                    <button class="btn create-button" v-on:click="create_new_deck">&plus; Add Deck</button>   
+                    <div>
+                        <button class="btn create-button" v-on:click="create_new_deck">&plus; Add Deck</button>
+                        <button class="btn btn-outline-dark" @click="export_all_decks">Export decks</button>
+                    </div>
                 </div>
                 <hr v-if="all_decks.length==0">
                 <p v-if="all_decks.length!=0">Your have following decks.</p>
@@ -63,6 +66,8 @@ var dashboard = Vue.component('dashboard',{
                         if(data["error_code"]=="SESEXP"){
                             alert("Session expired! Please login again !");
                             localStorage.setItem("token","")
+                            localStorage.setItem("current_user","")
+                            this.$parent.logged=false
                             this.$router.push("/")
                         }
                         else{
@@ -77,6 +82,27 @@ var dashboard = Vue.component('dashboard',{
                 .catch(e => alert("Deck could not be created."));
             }
             this.loading=false
+        },
+        export_all_decks: function(){
+            fetch(`${baseURL}/api/${this.username}/export`, {
+                method: 'GET',
+                headers: {'Authorization': localStorage.getItem("token")},
+            })
+            .then(res => {
+                if(res.ok){
+                    return res.blob()
+                }
+                else if(res.status===401){
+                    this.$router.push("/")
+                    localStorage.setItem("token","")
+                }
+            })
+            .then(file => {
+                var a = document.createElement("a");
+                a.href = window.URL.createObjectURL(file);
+                a.download = `${this.username}_all.csv`;
+                a.click();
+            })
         }
     },
     components:{
@@ -103,6 +129,8 @@ var dashboard = Vue.component('dashboard',{
                 if(data["error_code"]=="SESEXP"){
                     alert("Session expired! Please login again !");
                     localStorage.setItem("token","")
+                    localStorage.setItem("current_user","")
+                    this.$parent.logged=false
                     this.$router.push("/")
                 }
                 else{
@@ -112,6 +140,7 @@ var dashboard = Vue.component('dashboard',{
             else{
                 this.all_decks=data.decks;
                 this.all_decks.sort((a,b) => a.deck_score - b.deck_score)
+                this.$parent.logged=true
             }
             
         })
@@ -140,6 +169,7 @@ var deck_obj = Vue.component('deck-obj',{
         <th scope="row"><div class="deck-name" @click="goToCards">{{ deck.deck_name }}</div>
             <div class="deck-buttons">
                 <button title="Add new card to deck" class="select-action add-cards" v-on:click="add_card_to_deck" >Add Card</button>
+                <button title="Export as CSV" class="select-action export" v-on:click="export_deck" >Export</button>
                 <button title="Rename this deck" class="select-action rename" v-on:click="rename_deck">Rename</button>
                 <button title="Delete this deck" class="select-action delete" v-on:click="delete_deck" >Delete</button>
             </div>
@@ -175,6 +205,8 @@ var deck_obj = Vue.component('deck-obj',{
                         if(data["error_code"]=="SESEXP"){
                             alert("Session expired! Please login again !");
                             localStorage.setItem("token","")
+                            localStorage.setItem("current_user","")
+                            this.$parent.$parent.logged=false
                             this.$router.push("/")
                         }
                         else{
@@ -209,6 +241,8 @@ var deck_obj = Vue.component('deck-obj',{
                         if(data["error_code"]=="SESEXP"){
                             alert("Session expired! Please login again !");
                             localStorage.setItem("token","")
+                            localStorage.setItem("current_user","")
+                            this.$parent.$parent.logged=false
                             this.$router.push("/")
                         }
                         else{
@@ -241,18 +275,22 @@ var deck_obj = Vue.component('deck-obj',{
                         })
                     })
                     .then(res => {
-                        console.log(!res.ok)
                         if(res.status===401){
                             return res.json()
                         }
                         else if(!res.ok){
-                            throw new Error();}
+                            console.log("iniside elseif")
+                            throw new Error();
+                        }
+                        return res.json()
                     })
                     .then(data => {
                         if (data["error_code"]){
                             if(data["error_code"]=="SESEXP"){
                                 alert("Session expired! Please login again !");
                                 localStorage.setItem("token","")
+                                localStorage.setItem("current_user","")
+                                this.$parent.$parent.logged=false
                                 this.$router.push("/")
                             }
                             else{
@@ -260,9 +298,30 @@ var deck_obj = Vue.component('deck-obj',{
                             }
                         }
                     })
-                    .catch(e => alert("Card could not be created"))
+                    // .catch(e => alert("Card could not be created"))
                 }
             }
+        },
+        export_deck: function(){
+            fetch(`${baseURL}/api/${this.username}/${this.deck.deck_id}/export`, {
+                method: 'GET',
+                headers: {'Authorization': localStorage.getItem("token")},
+            })
+            .then(res => {
+                if(res.ok){
+                    return res.blob()
+                }
+                else if(res.status===401){
+                    this.$router.push("/")
+                    localStorage.setItem("token","")
+                }
+            })
+            .then(file => {
+                var a = document.createElement("a");
+                a.href = window.URL.createObjectURL(file);
+                a.download = `${this.deck.deck_name}.csv`;
+                a.click(); 
+            })
         },
         goToCards: function(){
             this.$router.push(this.card_view_url)

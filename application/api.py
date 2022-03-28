@@ -1,17 +1,21 @@
+from datetime import datetime
 from secrets import token_hex
 import re
 import json
+import requests
 import time
+from unittest import result
 import timeago
 from datetime import datetime as dt
 from flask_restful import Resource,Api,marshal_with,request
 import jwt
-from flask import current_app as app
+from flask import current_app as app, send_file, send_from_directory
 from flask import render_template
 from application.fieldsandparser import *
 from application.models import *
+from application import tasks
 from application.exceptions import AuthError, NotFoundError, ValidationError, InternalError
-from application.jwt_setup import auth_required,get_username_with_token
+from application.jwt_setup import auth_required,get_username_with_token,get_token
 
 
 #####    PROGRESS    ######
@@ -20,6 +24,33 @@ from application.jwt_setup import auth_required,get_username_with_token
 
 api=Api(app)
 baseURL="http://localhost:5000"
+
+@app.route("/hello", methods=["GET"])
+def hello():
+    now=datetime.now()
+    print("now_in_flask = ", now)
+    dt_string= now.strftime("%d/%m/%y %H:%M:%S")
+    print("date and time ", dt_string)
+    job = tasks.print_current_time_job.apply_async(countdown=10)
+    result=job.wait()
+    return str(result), 200
+
+@app.route("/api/<string:username>/<int:deck_id>/export", methods=["GET"])
+def export_deck_job(username,deck_id):
+    token=get_token()
+    deck_data=requests.get(url=f"http://localhost:5000/api/{username}/{deck_id}",headers={'Authorization':token})
+    mydeck=deck_data.json()
+    job=tasks.export_csv.delay(mydeck,username,deck_id)
+    return send_from_directory("csvs",f"{username}_{deck_id}.csv")
+
+@app.route("/api/<string:username>/export", methods=["GET"])
+def export_all_decks(username):
+    token=get_token()
+    decks_data=requests.get(url=f"http://localhost:5000/api/{username}",headers={'Authorization':token})
+    mydecks=decks_data.json()
+    job=tasks.export_all_decks.delay(mydecks)
+    result=job.wait()
+    return send_from_directory("csvs",f"{username}_all.csv")
 
 @app.route("/", methods=["GET"])
 def home():
@@ -79,15 +110,18 @@ class Login(Resource):
         if uname is None or pswd is None:
             raise ValidationError(status_code= 400,error_message= "Username or password can't be empty", error_code="EMPFLD")
         user_we_want = User.query.filter(User.username==uname).first()
-        if user_we_want.password==pswd: #we can add some hasning things here later.
-            return {
-                "token": jwt.encode({"username" : user_we_want.username, "iat": time.time(),"exp":time.time()+1800},key=app.config["SECRET_KEY"]).decode('utf-8'),
-                "username": user_we_want.username,
-                "name": user_we_want.name,
-                "email": user_we_want.email
-            }
+        if user_we_want:
+            if user_we_want.password==pswd: #we can add some hasning things here later.
+                return {
+                    "token": jwt.encode({"username" : user_we_want.username, "iat": time.time(),"exp":time.time()+1800},key=app.config["SECRET_KEY"]).decode('utf-8'),
+                    "username": user_we_want.username,
+                    "name": user_we_want.name,
+                    "email": user_we_want.email
+                }
+            else:
+                raise ValidationError(status_code=400,error_message="Incorrect Password",error_code="INCPW")
         else:
-            raise ValidationError(status_code=400,error_message="Incorrect Password",error_code="INCPW")
+            raise NotFoundError(404,"Usrename does not exist or incorrect")
  
     
 ##########################################################################
@@ -347,6 +381,13 @@ class individual_card(Resource):
             }
         })
 
+class isauth(Resource):
+    @auth_required
+    def get(self):
+        return ({
+            "auth": True,
+            "username": get_username_with_token()
+        })
 
         
 
@@ -355,3 +396,4 @@ api.add_resource(Signup,"/api/signup")
 api.add_resource(Deck_details_with_username,"/api/<string:username>")
 api.add_resource(card_details_with_deck,"/api/<string:username>/<int:deck_id>")
 api.add_resource(individual_card,"/api/<string:username>/<int:deck_id>/<int:card_id>")
+api.add_resource(isauth,"/api/isAuth")

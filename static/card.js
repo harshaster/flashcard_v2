@@ -8,12 +8,11 @@ const card_view = Vue.component('card-view', {
             deck_id:this.$route.params.deck_id,
             card_font_size:30,
             editing: false,
+            loading:true,
+            noCards:false
         }
     },
     computed:{
-        cards_len: function(){
-            return this.all_cards.length
-        },
         current_card: function(){
             return this.all_cards[this.current_card_index]
         },
@@ -21,11 +20,9 @@ const card_view = Vue.component('card-view', {
             return this.current_card_index==0;
         },
         nextnotAllowed: function(){
-            return this.current_card_index==(this.cards_len-1)
+            return this.current_card_index==(this.all_cards.length-1)
         },
-        noCards: function(){
-            return this.cards_len===0;
-        }
+        
     },
     template: `
         <div id="main-content">
@@ -67,7 +64,7 @@ const card_view = Vue.component('card-view', {
                     <button class="btn btn-outline-dark card-button" v-bind:disabled="this.nextnotAllowed" id="nextButton" v-on:click="current_card_index += 1;hidden=true">Next &gt;&gt;</button>
                 </div>
             </div>
-            <div id="loading-page" v-if="!current_card && !noCards">
+            <div id="loading-page" v-if="loading">
                 <div id="loading-page-inner">
                     <div style="display: flex;justify-content: center;">
                         <div id="circ1"></div>
@@ -96,6 +93,8 @@ const card_view = Vue.component('card-view', {
                 if(data["error_code"]=="SESEXP"){
                     alert("Session expired! Please login again !");
                     localStorage.setItem("token","")
+                    localStorage.setItem("current_user","")
+                    this.$parent.logged=false
                     this.$router.push("/")
                 }
                 else{
@@ -105,11 +104,14 @@ const card_view = Vue.component('card-view', {
             else{
                 if(data.deck_cards.length===0){
                     this.noCards=true
+                    
                 }
                 else{
                     this.all_cards=data.deck_cards;
                     this.all_cards.sort((x,y) => x.score - y.score)
-                }   
+                    this.$parent.logged=true
+                }
+                this.loading=false
             }
             
         })
@@ -145,7 +147,10 @@ const card_view = Vue.component('card-view', {
                 .then(res => {
                     if(res.ok){
                         try{
-                            this.all_cards.splice(this.current_card_index,1)
+                            this.all_cards.splice(this.current_card_index,1);
+                            if (this.all_cards.length===0){
+                                this.noCards=true
+                            }
                         }
                         catch(e){
                             throw(new Error(e))
@@ -163,6 +168,8 @@ const card_view = Vue.component('card-view', {
                         if(data["error_code"]=="SESEXP"){
                             alert("Session expired! Please login again !");
                             localStorage.setItem("token","")
+                            localStorage.setItem("current_user","")
+                            this.$parent.logged=false
                             this.$router.push("/")
                         }
                         else{
@@ -196,6 +203,8 @@ const card_view = Vue.component('card-view', {
                     if(data["error_code"]=="SESEXP"){
                         alert("Session expired! Please login again !");
                         localStorage.setItem("token","")
+                        localStorage.setItem("current_user","")
+                        this.$parent.logged=false
                         this.$router.push("/")
                     }
                     else{
@@ -236,6 +245,8 @@ const card_view = Vue.component('card-view', {
                     if(data["error_code"]=="SESEXP"){
                         alert("Session expired! Please login again !");
                         localStorage.setItem("token","")
+                        localStorage.setItem("current_user","")
+                        this.$parent.logged=false
                         this.$router.push("/")
                     }
                     else{

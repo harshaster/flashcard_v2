@@ -201,22 +201,29 @@ input{
     background-color: red;
     color: white;
 }
-
+.export{
+    border: 1px solid #222222;
+    color: #222222;
+}
+.export:hover{
+    background-color: #222222;
+    color: white;
+}
 /* =========================================================================== */
 
 #footer{
-    background-color: #8d8d8d;
+    background-color: #4b4b4b;
     bottom: 0;
     position:fixed;
-    height: 10%;
+    height: 50px;
     width: 100%;
 }
 
 .links{
     display: flex;
-    justify-content:space-evenly;
+    justify-content:center;
     align-content: flex-start;
-    margin-top: 2%;
+    margin-top: 5px;
 }
 
 .links a{

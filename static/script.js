@@ -52,6 +52,8 @@ const login = Vue.component('login',{
                 localStorage.setItem('token',login_data.token)
                 document.getElementById("loading").style.visibility="hidden";
                 setTimeout(()=>{},2000)
+                this.$parent.logged=true, 
+                localStorage.setItem("current_user",login_data.name)
                 this.$router.push(`/${login_data.username}`)
             }
             else if(login_res.status>=400 && login_res.status<500){
@@ -63,6 +65,27 @@ const login = Vue.component('login',{
                 document.getElementById("loading").style.visibility="hidden";
             }
         }
+    },
+    created: function(){
+        fetch(`${baseURL}/api/isAuth`, {
+            method: 'GET',
+            headers: {'Authorization': localStorage.getItem("token")},
+        })
+        .then(res => {
+            if(res.ok){
+                return res.json()
+            }
+            else{
+                throw new Error()
+            }
+        })
+        .then(data => {
+            if (data["auth"]){
+                this.$router.push(`/${data["username"]}`)
+                this.$parent.logged=true;
+            }
+        })
+        .catch(e => {})
     }
 })
 
@@ -193,15 +216,16 @@ var router = new VueRouter({
 
 const app = new Vue({
     el: "#app",
-    data: function(){
-        return {
-        logged:true,
-        user_name:"Harshit",
-    }
-},
+    data : {
+        logged: false
+    },
     router: router,
+    methods: {
+        logout: function(){
+            localStorage.setItem("token","")
+            localStorage.setItem("current_user","")
+            this.username=false
+            this.$router.push("/")
+        }
+    }
 })
-
-function changeTitle(newTitle){
-    document.title=newTitle
-}

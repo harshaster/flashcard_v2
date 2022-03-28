@@ -19,19 +19,18 @@
             <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
                 <div class="container-fluid mynav">
                     <a class="navbar-brand" href="/"><img id="brand-img" src="../static/img/logo.png"><span class="brand-name">FlashCard</span></a>
-                    <span v-if="logged" id="name-of-user"> Hello, {{user_name}}</span>
+                    <div v-if="logged">
+                        <button class="btn btn-outline-light" @click="logout">Logout</button>
+                    </div>
                 </div>
             </nav>
             <div id="loading"></div>
         </header>
-        <p>{{ user_name }}</p>
         <router-view></router-view>
         <footer id="footer">
             <div class="container">
-                <div class="links">
-                    <a href="#">About</a>
-                    <a href="#">Donate</a>
-                    <a href="#">Privacy</a>
+                <div class="links" style="color: white;">
+                   Flashcard App by <a href="https://www.linkedin.com/in/harshit-katiyar/" target="blank"><b style="letter-spacing: 2px;text-transform: uppercase;margin-left: 5px;">Harshit Katiyar</b></a>
                 </div>
             </div>
         </footer>

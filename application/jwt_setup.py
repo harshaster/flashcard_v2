@@ -16,10 +16,8 @@
 
 
 # jwt = JWT(app,authenticate,identity)
-
-from cmath import exp
 from functools import wraps
-from flask import request
+from flask import redirect, request
 import jwt
 from application.exceptions import AuthError
 from flask import current_app as app
@@ -29,7 +27,7 @@ def auth_required(f):
     def check_token(*args, **kwargs):
         token=request.headers.get('Authorization')
         if not(token):
-            raise AuthError("Authorization header not present.", "UNAUTH")
+            raise AuthError("Authorization header not present or method not allowed.", "UNAUTH")
         parts=token.split(" ")
         if len(parts)==2:
             my_jwt=parts[1]
@@ -64,5 +62,25 @@ def get_username_with_token():
         raise AuthError("Invalid token or token expired", "UNAUTH")
     if decoded:
         return decoded["username"]
+    else:
+        return None
+
+def get_token():
+    token=request.headers.get('Authorization')
+    if not(token):
+        raise AuthError("Authorization header not present.", "UNAUTH")
+    parts=token.split(" ")
+    if len(parts)==2:
+        my_jwt=parts[1]
+    elif len(parts)==1:
+        my_jwt=parts[0]
+    else:
+        raise AuthError("Token format not valid", "UNAUTH")
+    try:
+        decoded=jwt.decode(my_jwt,app.config["SECRET_KEY"])
+    except:
+        raise AuthError("Invalid token or token expired", "UNAUTH")
+    if decoded:
+        return token
     else:
         return None
