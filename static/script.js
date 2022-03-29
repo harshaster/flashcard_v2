@@ -1,4 +1,4 @@
-var baseURL="https://thefp2.herokuapp.com"
+var baseURL="http://thefp2.herokuapp.com"
 var LOGIN_END_POINT=`${baseURL}/api/login`
 var SIGNUP_END_POINT=`${baseURL}/api/signup`
 
