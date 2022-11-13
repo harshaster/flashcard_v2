@@ -38,15 +38,11 @@ def send_email(to_address, message, subject, attachment=None):
     return True
 
 def main():
-    # new_users = [
-    #     {"name": "Neha", "email": "neha@harshit.com"},
-    #     {"name": "Yasho", "email": "yasho@harshit.com"}
-    # ]
     # with open("welcome.html", 'r') as temp:
     #     template=Template(temp.read())
     # for user in new_users:
     #     send_email(user["email"], subject="Test Email", message=template.render(data=user), attachment="new.cpp")
-    send_email("harshasterhk@gmail.com", subject="Test mail", message="Hi there this is a test mail to check if my python code works")
+    send_email("sample@gmail.com", subject="Test mail", message="Hi there this is a test mail to check if my python code works")
 
 if __name__=="__main__":
     main()
