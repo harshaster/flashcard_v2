@@ -10,8 +10,8 @@ from jinja2 import Template
 
 SMTP_SERVER_HOST= "smtp.gmail.com"
 SMTP_SERVER_PORT= 587
-SENDER_ADDRESS = "31hk12@gmail.com"
-SENDER_PASSWORD = "31122002hk"
+SENDER_ADDRESS = "a@b.com"
+SENDER_PASSWORD = "pass"
 
 
 def send_email(to_address, message, subject, attachment=None):
